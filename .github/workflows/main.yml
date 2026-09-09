@@ -7,6 +7,48 @@ jobs:
   build:
     runs-on: windows-latest
 
+    env:
+      # Tells GitHub to bypass strict Node 20 blocking rules if any tool relies on it
+      ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4.2.2 # Updated to latest patch
+
+    - name: Install Qt 6
+      uses: jurplel/install-qt-action@v3.0.0
+      with:
+        version: '6.5.0'
+        host: 'windows'
+        target: 'desktop'
+        arch: 'win64_msvc2019_64'
+
+    - name: Setup MSVC Compiler
+      uses: ilammy/msvc-dev-cmd@v1.13.0 # Updated to latest version
+
+    - name: Build Application
+      run: |
+        qmake eSchema.pro
+        nmake
+
+    - name: Run windeployqt
+      run: |
+        windeployqt release/eSchema.exe
+
+    - name: Upload EXE Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: eSchema-Windows-EXE
+        path: release/
+name: Build Windows EXE
+
+on:
+  workflow_dispatch: # Allows you to run this manually
+
+jobs:
+  build:
+    runs-on: windows-latest
+
     steps:
     - name: Checkout Code
       uses: actions/checkout@v4
